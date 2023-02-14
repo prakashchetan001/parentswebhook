@@ -41,6 +41,13 @@ app.get('/test', (req, resp)=>{
     resp.send("test endpoint")
 });
 app.post('/parents', (req, resp)=>{
-    console.log("Parents endpoint Called", req.headers);
-    resp.send("post endpoint")
+    console.log("Parents endpoint Called", req.body);
+
+    validationToken = req.query.validationToken
+    if(validationToken){
+      resp.set('Content-Type', 'text/plain');
+      resp.status(200).send(validationToken);
+    } else {
+      resp.send("post endpoint")
+    }
 });
