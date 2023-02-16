@@ -45,6 +45,7 @@ app.post('/parents', (req, resp)=>{
 
     validationToken = req.query.validationToken
     if(validationToken){
+      console.log("Inside Validation Token");
       resp.set('Content-Type', 'text/plain');
       resp.status(200).send(validationToken);
     } else {
