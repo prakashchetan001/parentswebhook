@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const lib = require('./updateParentHelper');
 
 // defining the Express app
 const app = express();
@@ -41,7 +42,7 @@ app.get('/test', (req, resp)=>{
     resp.send("test endpoint")
 });
 app.post('/parents', (req, resp)=>{
-    console.log("Parents endpoint Called", req.body);
+    console.log("Parents endpoint Called");
 
     validationToken = req.query.validationToken
     if(validationToken){
@@ -49,6 +50,9 @@ app.post('/parents', (req, resp)=>{
       resp.set('Content-Type', 'text/plain');
       resp.status(200).send(validationToken);
     } else {
-      resp.send("post endpoint")
+      approvalId = req.body.value[0].id;
+      // Check whether it is correct approval ID
+      lib.processRequest(approvalId);
+      resp.send("post endpoint");
     }
 });
