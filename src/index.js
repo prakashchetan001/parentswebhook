@@ -6,6 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const lib = require('./updateParentHelper');
+const classIdCommunityIdMap = {};
 
 // defining the Express app
 const app = express();
@@ -56,3 +57,40 @@ app.post('/parents', (req, resp)=>{
       resp.send("post endpoint");
     }
 });
+app.get('/list/communities',(req, res)=> {
+  console.log("In List");
+  console.log("get community Endpoint called: ", req.query.teamIds, typeof req.query.teamIds)
+  let teamIds = undefined;
+  if(req.query.teamIds && typeof req.query.teamIds === "string") {
+      teamIds = req.query.teamIds.split(",");
+  }
+  if(!teamIds && !teamIds.length) {
+    res.status(400).end();
+  }
+  console.log(classIdCommunityIdMap);
+  const teamIdCummunityMap= teamIds.reduce((accumulator, teamId )=>{
+    if(classIdCommunityIdMap.hasOwnProperty(teamId) && !accumulator.hasOwnProperty(teamId)){
+      accumulator[teamId] = classIdCommunityIdMap[teamId];
+    }
+    return accumulator;
+  }, {})
+  res.send({teamIdCommunityMap: teamIdCummunityMap});
+});
+
+// Team ID -  Community Id for hack
+app.post('/class/:teamId/community',(req, res)=> {
+  console.log("Post community Endpoint called: ", req.params.teamId)
+  console.log("communityId")
+  const teamId = req.params.teamId;
+  const communityId = req.body && req.body["communityId"];
+  if(!teamId) {
+        res.status(400).end();
+  }
+  if(!req.body || !req.body["communityId"]){
+    res.status(400).end();
+  }
+  classIdCommunityIdMap[teamId] = communityId
+  res.send("CommunityId Map updated")
+});
+
+
