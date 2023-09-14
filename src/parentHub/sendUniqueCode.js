@@ -1,96 +1,24 @@
-const { EmailClient, KnownEmailSendStatus } = require("@azure/communication-email");
-const { v4: uuidv4 } = require('uuid');
-require("dotenv").config();
-const fs = require('fs');
+const { sendEmail } = require("./helpers/sendEmail");
+const {readMapFromFile, writeMapToFile, generateUniqueCode} = require("./helpers/utils");
 
-const connectionString = process.env['COMMUNICATION_SERVICES_CONNECTION_STRING'];
-const emailClient = new EmailClient(connectionString);
-
-const senderAddress = 'donotreply@adfe6cea-b4fd-4de8-a5f8-deea7e1b9e12.azurecomm.net';
-async function main(recipientAddress,customerName,uniqueCode,) {
-    const POLLER_WAIT_TIME = 10
-    try {
-      const message = {
-        senderAddress: senderAddress,
-        content: {
-          subject: "This is your uniuque code for Parental Consent",
-          plainText: `Hii ${customerName}, This is your unique code to provide teacher consent ${uniqueCode}`,
-        },
-        recipients: {
-          to: [
-            {
-              address: recipientAddress,
-            },
-          ],
-        },
-      };
-  
-      const poller = await emailClient.beginSend(message);
-  
-      if (!poller.getOperationState().isStarted) {
-        throw "Poller was not started."
-      }
-  
-      let timeElapsed = 0;
-      while(!poller.isDone()) {
-        poller.poll();
-        console.log("Email send polling in progress");
-  
-        await new Promise(resolve => setTimeout(resolve, POLLER_WAIT_TIME * 1000));
-        timeElapsed += 10;
-  
-        if(timeElapsed > 18 * POLLER_WAIT_TIME) {
-          throw "Polling timed out.";
-        }
-      }
-  
-      if(poller.getResult().status === KnownEmailSendStatus.Succeeded) {
-        console.log(`Successfully sent the email (operation id: ${poller.getResult().id})`);
-      }
-      else {
-        throw poller.getResult().error;
-      }
-    } catch (e) {
-      console.log(e);
-    }
-}
-
-// Define the file path
-const filePath = './teacherEmailToUniqueCode.json';
-// Function to read the map data from file
-function readMapFromFile() {
-    try {
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      const mapData = JSON.parse(fileContents);
-      const map = new Map(mapData);
-      return map;
-    } catch (err) {
-      return new Map();
-    }
-}
-// Function to write the map data to file
-function writeMapToFile(map) {
-    const mapData = Array.from(map.entries());
-    const jsonData = JSON.stringify(mapData);
-    fs.writeFileSync(filePath, jsonData);
-}
-const teacherEmailToUniqueCode = readMapFromFile();
-
-//Send Unique Code
-function generateUniqueCode() {
-    const uniqueCode =  uuidv4().substr(0, 4);             
-    return uniqueCode;
-}
-
-const sendCodeToTeacher = () => {
-    const associatedTeachersEmails = ['vardyani.r@gmail.com', 'rvardiyani@microsoft.com','romavofficial@gmail.com'];
-    for( const email of associatedTeachersEmails){
+const sendCodeToTeacher = (associatedTeachersEmails) => {
+    const teacherEmailToUniqueCode = readMapFromFile();
+    for( const email of associatedTeachersEmails) {
         if(teacherEmailToUniqueCode.size === 0 || !teacherEmailToUniqueCode.has(email))
         {
             const newCode = generateUniqueCode();
+
             teacherEmailToUniqueCode.set(email,newCode);
             writeMapToFile(teacherEmailToUniqueCode);
-            main(email,newCode);
+
+            const emailContent = {
+              subject: "This is your unique code for Parental Consent",
+              plainText: `Hi, This is your unique code to provide teacher consent ${newCode}.`+
+              `We have verified that user is indeed a parent, you just need to share this code if any parent reaches out to you.`+
+              `Once parent shares this code with us, we will add them as official parent in Microsoft systems.`
+            }
+
+            sendEmail(email,emailContent);
         }
     }
 }
