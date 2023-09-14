@@ -6,6 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const lib = require('./updateParentHelper');
+const relatedContacts = require('./relatedContacts');
 const classIdCommunityIdMap = {};
 
 // defining the Express app
@@ -93,4 +94,10 @@ app.post('/class/:teamId/community',(req, res)=> {
   res.send("CommunityId Map updated")
 });
 
-
+app.post('/addParent',(req, res)=> {
+  const studentId = req.body["studentId"];
+  const parentEmail = req.body["parentEmail"];
+  const parentName = req.body["parentName"];
+  console.log("Add parent called with student %s and parent email %s", studentId, parentEmail);
+  relatedContacts.updateRelatedContacts(studentId, parentEmail, parentName);
+});
