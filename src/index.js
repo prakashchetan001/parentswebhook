@@ -6,6 +6,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const lib = require('./updateParentHelper');
+const sendCode = require('./parentHub/sendUniqueCode.js');
+const validateTeacherCode = require('./parentHub/verifyUniqueCode');
 
 // defining the Express app
 const app = express();
@@ -55,4 +57,17 @@ app.post('/parents', (req, resp)=>{
       lib.processRequest(approvalId);
       resp.send("post endpoint");
     }
+});
+app.post('/sendTeacherCode', (req,resp)=>{
+  console.log("Send Teacher Code endpoint Called");
+  sendCode.sendCodeToTeacher();
+  resp.status(200).send("post endpoint");
+});
+
+app.post('/verifyUniqueCode', (req, resp)=>{
+  console.log("Verify Unique Code endpoint Called");
+  const code = 'e289';//req.body.code;
+  const associatedTeachersEmails = ['vardyani.r@gmail.com', 'rvardiyani@microsoft.com'];//req.body.associatedTeachersEmails;
+  const isCodeValid = validateTeacherCode.isUniqueCodeValid(code,associatedTeachersEmails);
+  resp.send(isCodeValid);
 });
