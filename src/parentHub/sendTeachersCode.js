@@ -12,7 +12,7 @@ const sendCodeToTeacher = (associatedTeachersEmails) => {
             writeMapToFile(teacherEmailToUniqueCode, teachersFilePath);
 
             const emailContent = {
-              subject: "This is your unique code for Parental Consent",
+              subject: `Unique code for Parental Consent : ${newCode}`,
               plainText: `Hi, This is your unique code to provide teacher consent ${newCode}.`+
               `We have verified that user is indeed a parent, you just need to share this code if any parent reaches out to you.`+
               `Once parent shares this code with us, we will add them as official parent in Microsoft systems.`

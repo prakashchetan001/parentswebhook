@@ -2,9 +2,9 @@ const axios = require('axios');
 const { response } = require('express');
 const qs = require('qs')
 
-const updateRelatedContacts = async(studentId, parentName, parentEmail) => {
+const updateRelatedContacts = async(studentEmail, parentName, parentEmail) => {
     const accessToken = await getAccessToken();
-    const existingcontacts = await getRelatedContacts(accessToken, studentId);
+    const existingcontacts = await getRelatedContacts(accessToken, studentEmail);
 
     const relatedContacts = [].concat(existingcontacts);
     const newContact = {
@@ -15,7 +15,7 @@ const updateRelatedContacts = async(studentId, parentName, parentEmail) => {
     };
     relatedContacts.push(newContact);
 
-    url = `https://graph.microsoft.com/beta/education/users/${studentId}`;
+    url = `https://graph.microsoft.com/beta/education/users/${studentEmail}`;
     const body = {
         "relatedContacts": relatedContacts
     }

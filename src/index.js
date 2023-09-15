@@ -137,12 +137,15 @@ app.post('/verifyTeacherCode', (req, resp)=>{
 });
 
 app.post('/addParent',(req, res)=> {
-  const studentId = req.body["studentId"];
+  const studentEmail = req.body["studentEmail"];
   const parentEmail = req.body["parentEmail"];
-  const parentName = req.body["parentName"];
-  console.log("Add parent called with student %s and parent email %s", studentId, parentEmail);
+  let parentName = req.body["parentName"];
+  console.log("Add parent called with student %s and parent email %s", studentEmail, parentEmail);
 
-  relatedContacts.updateRelatedContacts(studentId, parentName, parentEmail);
+  if(parentName == null) {
+    parentName = parentEmail.split('@')[0];
+  }
+  relatedContacts.updateRelatedContacts(studentEmail, parentName, parentEmail);
 
   res.status(200).send("Added parent successfully");
 });
