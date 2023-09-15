@@ -6,9 +6,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const lib = require('./updateParentHelper');
-const sendCode = require('./parentHub/sendUniqueCode.js');
-const validateTeacherCode = require('./parentHub/verifyUniqueCode');
+const sendStudentCode = require('./parentHub/sendStudentCode');
+const verifyStudentCode = require('./parentHub/verifyStudentCode');
+const sendTeacherCode = require('./parentHub/sendTeachersCode.js');
+const validateTeacherCode = require('./parentHub/verifyTeacherCode');
 const relatedContacts = require('./parentHub/relatedContacts');
+const utils = require('./parentHub/helpers/utils');
 const classIdCommunityIdMap = {};
 
 // defining the Express app
@@ -101,14 +104,29 @@ app.post('/class/:teamId/community',(req, res)=> {
  * APIs for adding parents via school connection hack
  */
 
+ app.post('/sendStudentCode', (req,resp)=>{
+  const studentEmail = req.body["studentEmail"];
+  console.log("Send Student Code endpoint Called with email :", studentEmail);
+  sendStudentCode.sendCodeToStudent(studentEmail);
+  resp.status(200).send("Sent code successfully to student's email");
+});
+
+app.post('/verifyStudentCode', (req,resp)=>{
+  const studentEmail = req.body["studentEmail"];
+  const otp = req.body["otp"];
+  console.log("Send Student Code endpoint Called with email %s and code %s", studentEmail, otp);
+  const isCodeValid = verifyStudentCode.isUniqueCodeValid(studentEmail, otp);
+  resp.send(isCodeValid);
+});
+
 app.post('/sendTeacherCode', (req,resp)=>{
   const teacherEmails = req.body["teacherEmails"];
   console.log("Send Teacher Code endpoint Called with emails :", teacherEmails);
-  sendCode.sendCodeToTeacher(teacherEmails);
+  sendTeacherCode.sendCodeToTeacher(teacherEmails);
   resp.status(200).send("Sent emails successfully");
 });
 
-app.post('/verifyUniqueCode', (req, resp)=>{
+app.post('/verifyTeacherCode', (req, resp)=>{
   const teacherEmails = req.body["teacherEmails"];
   const code = req.body["code"];
   
@@ -124,7 +142,12 @@ app.post('/addParent',(req, res)=> {
   const parentName = req.body["parentName"];
   console.log("Add parent called with student %s and parent email %s", studentId, parentEmail);
 
-  relatedContacts.updateRelatedContacts(studentId, parentEmail, parentName);
+  relatedContacts.updateRelatedContacts(studentId, parentName, parentEmail);
 
   res.status(200).send("Added parent successfully");
+});
+
+app.delete('/clear',(req, res)=> {
+  utils.clearData();
+  res.status(200).send("Data cleared");
 });

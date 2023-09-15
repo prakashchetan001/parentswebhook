@@ -1,15 +1,15 @@
 const { sendEmail } = require("./helpers/sendEmail");
-const {readMapFromFile, writeMapToFile, generateUniqueCode} = require("./helpers/utils");
+const {readMapFromFile, writeMapToFile, generateUniqueCode, teachersFilePath} = require("./helpers/utils");
 
 const sendCodeToTeacher = (associatedTeachersEmails) => {
-    const teacherEmailToUniqueCode = readMapFromFile();
+    const teacherEmailToUniqueCode = readMapFromFile(teachersFilePath);
     for( const email of associatedTeachersEmails) {
         if(teacherEmailToUniqueCode.size === 0 || !teacherEmailToUniqueCode.has(email))
         {
             const newCode = generateUniqueCode();
 
             teacherEmailToUniqueCode.set(email,newCode);
-            writeMapToFile(teacherEmailToUniqueCode);
+            writeMapToFile(teacherEmailToUniqueCode, teachersFilePath);
 
             const emailContent = {
               subject: "This is your unique code for Parental Consent",
